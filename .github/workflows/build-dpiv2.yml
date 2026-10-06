@@ -1,0 +1,65 @@
+name: Build OnionHEN DPIv2 ELF
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout DPIv2 source
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            bash cmake ninja-build git wget unzip \
+            clang-18 lld-18 python3 python3-pyelftools pkg-config
+
+      - name: Install PS5 Payload SDK
+        shell: bash
+        run: |
+          wget -q \
+            https://github.com/ps5-payload-dev/sdk/releases/latest/download/ps5-payload-sdk.zip \
+            -O /tmp/ps5-payload-sdk.zip
+          sudo rm -rf /opt/ps5-payload-sdk
+          sudo unzip -q /tmp/ps5-payload-sdk.zip -d /opt
+          test -d /opt/ps5-payload-sdk
+          echo "PS5_PAYLOAD_SDK=/opt/ps5-payload-sdk" >> "$GITHUB_ENV"
+          echo "LLVM_CONFIG=/usr/bin/llvm-config-18" >> "$GITHUB_ENV"
+
+      - name: Configure
+        shell: bash
+        run: |
+          cmake --preset ps5
+
+      - name: Build
+        shell: bash
+        run: |
+          cmake --build --preset ps5 --parallel
+          test -f build-ps5/bin/dpiv2.elf
+
+      - name: Prepare install-ready ELF
+        shell: bash
+        run: |
+          mkdir -p artifact
+          cp build-ps5/bin/dpiv2.elf artifact/DPIV00001.elf
+          sha256sum artifact/DPIV00001.elf | tee artifact/SHA256SUMS.txt
+          ls -lh artifact/DPIV00001.elf
+
+      - name: Upload ELF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OnionHEN-DPIv2-DPIV00001
+          path: artifact/
+          if-no-files-found: error
+          retention-days: 30
