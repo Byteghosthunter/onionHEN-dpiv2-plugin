@@ -37,6 +37,24 @@ jobs:
           echo "PS5_PAYLOAD_SDK=/opt/ps5-payload-sdk" >> "$GITHUB_ENV"
           echo "LLVM_CONFIG=/usr/bin/llvm-config-18" >> "$GITHUB_ENV"
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: webui/package-lock.json
+
+      - name: Build WebUI
+        working-directory: webui
+        shell: bash
+        run: |
+          npm ci
+          npm run build
+          if grep -q "50 GB" dist/index.html; then
+            echo "Stale 50 GB WebUI limit detected" >&2
+            exit 1
+          fi
+
       - name: Configure
         shell: bash
         run: |
