@@ -30,6 +30,7 @@ WebUI port, and restart.
 ## Features
 
 - Drag-and-drop multi-file uploads from a desktop or mobile browser
+- No artificial 50 GB browser file-size cap; practical size is limited by available PS5 staging storage and the system installer
 - Chunked transfer, resumable staging, and staged-file reuse
 - PS4/PS5 package detection before installation
 - Sortable install queue, per-file retry, and live SSE progress

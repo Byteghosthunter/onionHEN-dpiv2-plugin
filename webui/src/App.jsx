@@ -17,8 +17,6 @@ import logoUrl from './assets/logo.webp'
 import { resolveLanguage, translate, languageMeta } from './i18n.js'
 import { sha256Hex } from './sha256.js'
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024 * 1024
-
 function formatBytes(bytes) {
   if (bytes === 0) return '0 B'
   const units = ['B', 'KB', 'MB', 'GB', 'TB']
@@ -454,7 +452,7 @@ function App() {
       if (!file) return false
       const name = String(file.name || '').trim().toLowerCase()
       const size = Number.isFinite(file.size) ? file.size : 0
-      return name.endsWith('.pkg') && size <= MAX_FILE_SIZE
+      return name.endsWith('.pkg') && size > 0
     })
     const nextFiles = await Promise.all(
       validFiles.map(async (file) => ({
